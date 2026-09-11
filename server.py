@@ -13,7 +13,10 @@ import io
 import re
 import math
 from collections import Counter
-import pypdf
+try:
+    import pypdf
+except ImportError:
+    pypdf = None
 
 PORT = 8080
 DIRECTORY = os.path.dirname(os.path.abspath(__file__))
@@ -106,9 +109,12 @@ class OmegaLoopHandler(http.server.SimpleHTTPRequestHandler):
                     import base64
                     file_bytes = base64.b64decode(payload["base64"])
                     if filename.lower().endswith(".pdf"):
-                        reader = pypdf.PdfReader(io.BytesIO(file_bytes))
-                        pages_text = [p.extract_text() or "" for p in reader.pages]
-                        raw_text = "\n".join(pages_text)
+                        if pypdf:
+                            reader = pypdf.PdfReader(io.BytesIO(file_bytes))
+                            pages_text = [p.extract_text() or "" for p in reader.pages]
+                            raw_text = "\n".join(pages_text)
+                        else:
+                            raw_text = file_bytes.decode("utf-8", errors="replace")
                     else:
                         raw_text = file_bytes.decode("utf-8", errors="replace")
             except Exception:
@@ -207,28 +213,106 @@ class OmegaLoopHandler(http.server.SimpleHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(json.dumps({"success": False, "error": str(e)}).encode("utf-8"))
 
+class ReusableTCPServer(socketserver.TCPServer):
+    allow_reuse_address = True
+
+def run_streamlit():
+    """Streamlit Cloud & Web Entry Point for OmegaLoop."""
+    import streamlit as st
+    import streamlit.components.v1 as components
+
+    st.set_page_config(
+        page_title="OmegaLoop: Socratic Quantum Workspace",
+        page_icon="⚛️",
+        layout="wide",
+        initial_sidebar_state="collapsed"
+    )
+
+    # Clean styling to maximize viewport for OmegaLoop
+    st.markdown("""
+    <style>
+        #MainMenu, footer, header, .stDeployButton {display: none !important;}
+        div.block-container {
+            padding: 0rem !important;
+            margin: 0rem !important;
+            max-width: 100% !important;
+        }
+        iframe {
+            width: 100% !important;
+            height: 98vh !important;
+            min-height: 850px;
+            border: none !important;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
+    html_path = os.path.join(DIRECTORY, "index.html")
+    if not os.path.exists(html_path):
+        # Search parent directories and current directory for index.html
+        for cand in [
+            os.path.join(os.getcwd(), "index.html"),
+            os.path.join(os.getcwd(), "Python_chatbot", "index.html"),
+            os.path.join(os.path.dirname(DIRECTORY), "index.html"),
+            os.path.join(os.path.dirname(DIRECTORY), "Python_chatbot", "index.html")
+        ]:
+            if os.path.exists(cand):
+                html_path = cand
+                break
+
+    if os.path.exists(html_path):
+        with open(html_path, "r", encoding="utf-8") as f:
+            html_content = f.read()
+        components.html(html_content, height=920, scrolling=True)
+    else:
+        st.error("index.html not found. Please ensure index.html exists in the repository.")
+
 def main():
-    with socketserver.TCPServer(("", PORT), OmegaLoopHandler) as httpd:
-        url = f"http://localhost:{PORT}/index.html"
-        print("=" * 65)
-        print(" Ω  OmegaLoop: Socratic Quantum Workspace (RAG & Multi-Tier)")
-        print(" Active First-Principles Quantum Tutoring | UN SDG 4")
-        print("=" * 65)
-        print(f" -> Serving frontend & RAG endpoints at: {url}")
-        print(" -> Endpoints: /api/upload, /api/rag_query, /api/generate_challenge")
-        print(" Press Ctrl+C to terminate.")
-        print("=" * 65)
-        
+    global PORT
+    httpd = None
+    for p in range(PORT, PORT + 20):
         try:
-            webbrowser.open(url)
-        except Exception:
-            pass
+            httpd = ReusableTCPServer(("", p), OmegaLoopHandler)
+            PORT = p
+            break
+        except OSError:
+            continue
 
-        try:
-            httpd.serve_forever()
-        except KeyboardInterrupt:
-            print("\nShutting down OmegaLoop workspace server.")
-            httpd.server_close()
+    if not httpd:
+        print(f"Error: Could not bind server to ports {PORT}-{PORT+19}")
+        return
 
-if __name__ == "__main__":
+    url = f"http://localhost:{PORT}/index.html"
+    print("=" * 65)
+    print(" Ω  OmegaLoop: Socratic Quantum Workspace (RAG & Multi-Tier)")
+    print(" Active First-Principles Quantum Tutoring | UN SDG 4")
+    print("=" * 65)
+    print(f" -> Serving frontend & RAG endpoints at: {url}")
+    print(" -> Endpoints: /api/upload, /api/rag_query, /api/generate_challenge")
+    print(" Press Ctrl+C to terminate.")
+    print("=" * 65)
+    
+    try:
+        webbrowser.open(url)
+    except Exception:
+        pass
+
+    try:
+        httpd.serve_forever()
+    except KeyboardInterrupt:
+        print("\nShutting down OmegaLoop workspace server.")
+    finally:
+        httpd.server_close()
+
+# Detect if running under Streamlit (e.g. `streamlit run server.py` on Streamlit Cloud)
+_is_streamlit = False
+try:
+    import streamlit as _st
+    if getattr(_st, "runtime", None) is not None and _st.runtime.exists():
+        _is_streamlit = True
+except Exception:
+    _is_streamlit = False
+
+if _is_streamlit:
+    run_streamlit()
+elif __name__ == "__main__":
     main()
