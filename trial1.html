@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OmegaLoop — Socratic Physics</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN for Quantum Plotting -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    .font-mono {
+      font-family: 'Fira Code', monospace;
+    }
+    /* Subtle custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #e2e8f0;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="bg-[#fafbfc] text-slate-800 antialiased flex h-screen overflow-hidden">
+
+  <!-- ==================== LEFT SIDEBAR ==================== -->
+  <aside class="w-72 bg-white border-r border-slate-200/80 flex flex-col flex-shrink-0 select-none">
+    <!-- Brand Logo -->
+    <div class="p-5 pb-4 flex items-center gap-3 border-b border-slate-100">
+      <div class="w-9 h-9 rounded-xl border border-blue-200 bg-blue-50 flex items-center justify-center text-blue-600 shadow-sm">
+        <i data-lucide="atom" class="w-5 h-5 stroke-[2]"></i>
+      </div>
+      <div>
+        <h1 class="text-base font-bold tracking-tight text-slate-900 leading-none">OmegaLoop</h1>
+        <span class="text-[10px] font-mono tracking-wider uppercase text-slate-400">Socratic Physics</span>
+      </div>
+    </div>
+
+    <!-- Navigation Scroll Area -->
+    <div class="flex-1 overflow-y-auto px-4 py-4 space-y-6">
+      
+      <!-- Learning Mode Section -->
+      <div>
+        <div class="flex items-center justify-between text-[11px] font-mono uppercase tracking-wider text-slate-400 mb-2 px-1">
+          <span>Learning Mode</span>
+          <span class="inline-flex items-center gap-1.5 text-emerald-600 font-medium lowercase text-[10px]">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> live
+          </span>
+        </div>
+
+        <div class="space-y-1.5">
+          <button onclick="switchView('workspace')" class="w-full text-left p-2.5 rounded-xl border border-slate-100 hover:border-slate-200 transition-colors flex items-start gap-3 group">
+            <i data-lucide="book-open" class="w-4 h-4 text-slate-400 mt-0.5 group-hover:text-blue-600"></i>
+            <div>
+              <div class="text-xs font-semibold text-slate-700">Conceptual & numerical</div>
+              <div class="text-[10px] text-slate-400">Step-by-step tutor</div>
+            </div>
+          </button>
+
+          <button onclick="switchView('challenge')" class="w-full text-left p-2.5 rounded-xl border border-amber-200/80 bg-amber-50/40 hover:bg-amber-50 transition-colors flex items-start gap-3">
+            <i data-lucide="zap" class="w-4 h-4 text-amber-600 mt-0.5 fill-amber-100"></i>
+            <div>
+              <div class="text-xs font-semibold text-amber-900">Challenge time</div>
+              <div class="text-[10px] text-amber-700/70">Hints only · no answers</div>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Action Button -->
+      <button class="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium flex items-center justify-center gap-2 shadow-sm shadow-blue-500/20 transition-all">
+        <i data-lucide="plus" class="w-4 h-4"></i> New chat
+      </button>
+
+      <!-- Search Bar -->
+      <div class="relative">
+        <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5"></i>
+        <input type="text" placeholder="Search chats" class="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl border border-slate-200 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 bg-slate-50/50">
+      </div>
+
+      <!-- Visual Observatory Tab -->
+      <div>
+        <button onclick="switchView('observatory')" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-100/70 hover:text-blue-600 transition-colors">
+          <i data-lucide="waves" class="w-4 h-4 text-blue-500"></i>
+          Visual observatory
+        </button>
+      </div>
+
+      <!-- Curriculum Tracks -->
+      <div>
+        <div class="flex items-center justify-between text-[11px] font-mono uppercase tracking-wider text-slate-400 mb-2 px-1">
+          <span>Curriculum tracks</span>
+          <span class="text-[10px] text-slate-400 font-sans">3 tracks</span>
+        </div>
+
+        <div class="space-y-1">
+          <div class="flex items-center justify-between p-2 rounded-lg text-xs hover:bg-slate-50 text-slate-700 cursor-pointer">
+            <div class="flex items-center gap-2.5">
+              <span class="w-4 h-4 rounded bg-blue-100 text-blue-700 font-mono text-[10px] flex items-center justify-center font-bold">1</span>
+              <span>The Foundational Triad</span>
+            </div>
+            <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400"></i>
+          </div>
+
+          <div class="flex items-center justify-between p-2 rounded-lg text-xs hover:bg-slate-50 text-slate-700 cursor-pointer">
+            <div class="flex items-center gap-2.5">
+              <span class="w-4 h-4 rounded bg-purple-100 text-purple-700 font-mono text-[10px] flex items-center justify-center font-bold">2</span>
+              <span>Quantum Information</span>
+            </div>
+            <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400"></i>
+          </div>
+
+          <div class="flex items-center justify-between p-2 rounded-lg text-xs hover:bg-slate-50 text-slate-700 cursor-pointer">
+            <div class="flex items-center gap-2.5">
+              <span class="w-4 h-4 rounded bg-amber-100 text-amber-700 font-mono text-[10px] flex items-center justify-center font-bold">3</span>
+              <span>Historical Quantization</span>
+            </div>
+            <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Activity -->
+      <div>
+        <div class="text-[11px] font-mono uppercase tracking-wider text-slate-400 mb-2 px-1">Recent Activity</div>
+        <p class="text-[11px] text-slate-400 px-1 leading-relaxed">Your solved derivations will appear here.</p>
+      </div>
+    </div>
+
+    <!-- User Profile Footer -->
+    <div class="p-3 border-t border-slate-100 flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <div class="w-7 h-7 rounded-lg bg-blue-100/70 border border-blue-200 text-blue-700 font-mono text-xs flex items-center justify-center font-semibold">
+          OL
+        </div>
+        <div>
+          <div class="text-xs font-semibold text-slate-800">Open learner</div>
+          <div class="text-[10px] text-slate-400">SDG 4 · curious by default</div>
+        </div>
+      </div>
+      <button class="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-slate-600">
+        <i data-lucide="settings" class="w-4 h-4"></i>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ==================== MAIN CONTENT AREA ==================== -->
+  <main class="flex-1 flex flex-col min-w-0 bg-[#fafbfc]">
+    
+    <!-- Top Global Bar -->
+    <header class="h-12 border-b border-slate-200/80 bg-white/70 backdrop-blur px-6 flex items-center justify-between text-xs font-mono">
+      <div class="flex items-center gap-2 text-slate-500">
+        <span class="w-2 h-2 rounded-full bg-blue-600 inline-block"></span>
+        <span>Workspace:</span>
+        <span class="text-slate-800 font-semibold">Challenge time</span>
+        <span class="text-slate-400">›</span>
+        <span class="text-slate-600" id="current-track-crumb">The Foundational Triad</span>
+      </div>
+
+      <div class="flex items-center gap-6 text-slate-500">
+        <span id="live-date">Fri, Sep 11</span>
+        <span class="font-mono text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200/60">
+          ℏ 1.054 × 10<sup>-34</sup> J·s
+        </span>
+      </div>
+    </header>
+
+    <!-- VIEWS CONTAINER -->
+    <div class="flex-1 overflow-y-auto relative">
+      
+      <!-- ==================== VIEW 1: DEDUCTION HOME ==================== -->
+      <section id="view-workspace" class="max-w-4xl mx-auto px-8 py-12 flex flex-col justify-between min-h-full">
+        <div>
+          <!-- Header breadcrumb badge -->
+          <div class="flex items-center justify-between mb-8">
+            <div class="flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-slate-400">
+              <i data-lucide="graduation-cap" class="w-4 h-4 text-blue-500"></i>
+              CHALLENGE WORKSPACE
+            </div>
+            <button class="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 border border-slate-200 px-2.5 py-1 rounded-lg bg-white shadow-2xs">
+              <i data-lucide="rotate-ccw" class="w-3 h-3"></i> rotate fact
+            </button>
+          </div>
+
+          <!-- Hero Headline -->
+          <div class="mb-10">
+            <h2 class="text-4xl font-extrabold text-slate-900 tracking-tight leading-none mb-1">
+              Where shall we
+            </h2>
+            <h2 class="text-4xl font-extrabold text-blue-600 tracking-tight leading-tight">
+              deduce <span class="text-slate-900">today?</span>
+            </h2>
+            <p class="text-sm text-slate-500 mt-2">A focused derivation. Your mentor will never reveal the answer.</p>
+          </div>
+
+          <!-- Daily Quantum Observation Card -->
+          <div class="bg-blue-50/40 border border-blue-100 rounded-2xl p-6 relative overflow-hidden mb-8">
+            <div class="text-[10px] font-mono tracking-wider uppercase text-blue-600 font-semibold mb-2">
+              Daily Quantum Observation · Historical Quantization
+            </div>
+            <div class="flex items-start justify-between">
+              <div>
+                <h3 class="text-xl font-bold text-slate-900 mb-1">The ultraviolet catastrophe</h3>
+                <p class="text-xs text-slate-600 max-w-md">Planck's tiny quantum leap made the spectrum finite — and changed reality.</p>
+                <a href="#" onclick="switchView('challenge')" class="inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:underline mt-4">
+                  Test this in Challenge Time <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                </a>
+              </div>
+              <div class="text-right">
+                <div class="font-mono text-2xl font-bold text-slate-800 tracking-tight">E = hν</div>
+                <div class="text-[10px] font-mono text-slate-400 uppercase mt-1">Observation / 01</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chip suggestions -->
+          <div class="flex items-center gap-2 mb-4 text-xs text-slate-400">
+            <span>Try asking</span>
+            <button class="px-3 py-1 bg-white border border-slate-200 rounded-full text-slate-600 hover:bg-slate-50 transition">Why can't we know both?</button>
+            <button class="px-3 py-1 bg-white border border-slate-200 rounded-full text-slate-600 hover:bg-slate-50 transition">Explain entanglement</button>
+            <button class="px-3 py-1 bg-white border border-slate-200 rounded-full text-slate-600 hover:bg-slate-50 transition">What if L doubled?</button>
+          </div>
+        </div>
+
+        <!-- Hypothesis Input bar -->
+        <div class="pt-4 pb-2">
+          <div class="relative bg-white border border-slate-200 rounded-2xl shadow-sm p-1.5 flex items-center focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100 transition-all">
+            <div class="pl-3 text-blue-600">
+              <i data-lucide="sparkles" class="w-4 h-4"></i>
+            </div>
+            <input type="text" placeholder="Enter a hypothesis for a short physical hint..." class="w-full px-3 py-2 text-xs bg-transparent focus:outline-none placeholder:text-slate-400">
+            <span class="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 mr-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Hints only
+            </span>
+            <button class="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-xs">
+              <i data-lucide="arrow-up" class="w-4 h-4"></i>
+            </button>
+          </div>
+          <div class="flex justify-between items-center text-[10px] font-mono text-slate-400 mt-2 px-1">
+            <span>Zero-answer policy · tiered physical hints</span>
+            <span>⌘ ↵ to send</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== VIEW 2: CHALLENGE DERIVATION ==================== -->
+      <section id="view-challenge" class="hidden max-w-6xl mx-auto px-8 py-8 h-full flex flex-col justify-between">
+        <div>
+          <!-- Challenge meta header -->
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-slate-400">
+              <i data-lucide="zap" class="w-3.5 h-3.5 text-blue-600"></i>
+              CHALLENGE TIME / TIER 02
+            </div>
+            <!-- Decoherence Timer Badge -->
+            <div class="flex items-center gap-3">
+              <div class="bg-amber-50 border border-amber-200 rounded-xl px-3 py-1.5 flex items-center gap-2">
+                <i data-lucide="clock" class="w-4 h-4 text-amber-600"></i>
+                <div class="font-mono text-sm font-bold text-amber-800" id="timer">05:17</div>
+              </div>
+              <button onclick="switchView('workspace')" class="w-8 h-8 rounded-xl border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100">
+                <i data-lucide="x" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Problem Title -->
+          <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight leading-tight mb-6">
+            Recover the <span class="text-blue-600">superposition state.</span>
+          </h1>
+
+          <!-- Metric counters banner -->
+          <div class="grid grid-cols-3 border border-slate-200 rounded-xl bg-white mb-6 divide-x divide-slate-200">
+            <div class="p-3.5">
+              <div class="text-[10px] font-mono uppercase text-slate-400 tracking-wider">Quantum Coherence Score τ</div>
+              <div class="text-xl font-mono font-bold text-slate-900 mt-0.5">100<span class="text-xs font-normal text-slate-500">%</span></div>
+            </div>
+            <div class="p-3.5">
+              <div class="text-[10px] font-mono uppercase text-slate-400 tracking-wider">Decoherence Timer</div>
+              <div class="text-xl font-mono font-bold text-slate-900 mt-0.5">05:17 <span class="text-xs font-normal text-slate-400">s</span></div>
+            </div>
+            <div class="p-3.5">
+              <div class="text-[10px] font-mono uppercase text-slate-400 tracking-wider">Hints Used</div>
+              <div class="text-xl font-mono font-bold text-slate-900 mt-0.5">0 <span class="text-xs font-normal text-slate-400">/ 3</span></div>
+            </div>
+          </div>
+
+          <!-- Main Workspace Split -->
+          <div class="grid grid-cols-12 gap-6">
+            <!-- Left: Problem Statement & Math Verification Area -->
+            <div class="col-span-8 space-y-4">
+              <!-- Prompt note -->
+              <div class="border-l-2 border-blue-600 pl-4 py-1">
+                <span class="text-[10px] font-mono uppercase tracking-widest text-blue-600 font-semibold block mb-1">Zero-answer policy · Physical hints only</span>
+                <p class="text-sm font-medium text-slate-800 leading-relaxed">
+                  A particle is prepared in an equal superposition of the first two infinite-well energy eigenstates. Write the state vector at time <i>t</i> = 0.
+                </p>
+                <div class="font-mono text-xs text-slate-500 mt-1">Boundary clue: ψ(0) = ψ(L) = 0</div>
+              </div>
+
+              <!-- LaTeX Notation Editor -->
+              <div>
+                <div class="flex items-center justify-between text-[11px] font-mono text-slate-400 mb-1.5">
+                  <span>VERIFICATION BAR <span class="text-slate-400">Use LaTeX notation</span></span>
+                </div>
+                <div class="relative">
+                  <textarea id="latex-input" rows="5" placeholder="Enter your state vector hypothesis..." class="w-full p-4 rounded-xl border border-slate-200 font-mono text-xs text-slate-800 bg-white focus:outline-none focus:border-blue-500 shadow-2xs leading-relaxed resize-none"></textarea>
+                </div>
+              </div>
+
+              <!-- Verification controls -->
+              <div class="flex items-center gap-3 pt-1">
+                <button class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center gap-2 shadow-xs transition">
+                  <i data-lucide="check" class="w-4 h-4"></i> Validate solution
+                </button>
+                <button class="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 text-xs font-medium flex items-center gap-1.5 transition">
+                  <i data-lucide="lightbulb" class="w-3.5 h-3.5 text-amber-500"></i> Tier 1 hint <span class="text-[10px] font-mono text-slate-400">-4% τ</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Right: Socratic Sidebar / Coherence breakdown -->
+            <div class="col-span-4 border-l border-slate-200 pl-6 space-y-6">
+              <div>
+                <div class="text-[10px] font-mono uppercase tracking-wider text-slate-400 mb-1">Quantum Coherence Score τ</div>
+                <div class="text-3xl font-extrabold text-blue-600 font-mono">100<span class="text-lg font-normal">%</span></div>
+                <div class="w-full bg-slate-100 rounded-full h-1 mt-2 overflow-hidden">
+                  <div class="bg-blue-600 h-1 rounded-full" style="width: 100%"></div>
+                </div>
+                <p class="text-[11px] text-slate-400 mt-2 leading-relaxed">
+                  Coherence is your attention budget. Hints and time pressure introduce gentle noise.
+                </p>
+              </div>
+
+              <div class="pt-4 border-t border-slate-100">
+                <div class="flex items-center gap-2 text-xs font-mono text-slate-400 mb-2">
+                  <span class="w-5 h-5 rounded bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center text-[10px]">ψ</span>
+                  <span>STATE VECTOR</span>
+                </div>
+                <div class="text-xs font-medium text-slate-600">Awaiting your model</div>
+              </div>
+
+              <div class="pt-4 border-t border-slate-100">
+                <div class="flex items-center justify-between text-xs mb-1">
+                  <span class="font-semibold text-slate-800 flex items-center gap-1.5">
+                    <i data-lucide="atom" class="w-3.5 h-3.5 text-blue-600"></i> Socratic assistant
+                  </span>
+                  <span class="text-[10px] font-mono text-emerald-600">online</span>
+                </div>
+                <p class="text-xs text-slate-500 italic mt-2 leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-100">
+                  "What does 'equal' tell you about the magnitude of each coefficient?"
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== VIEW 3: VISUAL OBSERVATORY ==================== -->
+      <section id="view-observatory" class="hidden max-w-5xl mx-auto px-8 py-8">
+        <!-- Observatory header -->
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-slate-400">
+            <i data-lucide="waves" class="w-3.5 h-3.5 text-blue-500"></i>
+            VISUAL OBSERVATORY / BLUE-SLATE PLOT
+          </div>
+          <button onclick="switchView('workspace')" class="w-8 h-8 rounded-xl border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight leading-none mb-1">
+          See the state
+        </h1>
+        <h1 class="text-3xl font-extrabold text-blue-600 tracking-tight leading-tight mb-8">
+          before you solve it.
+        </h1>
+
+        <!-- Interactive Plot Card -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+          <div class="flex items-center justify-between mb-2">
+            <div>
+              <h4 class="text-xs font-bold text-slate-900">Probability density</h4>
+              <p class="text-[10px] font-mono text-slate-400">Position space · normalized amplitude</p>
+            </div>
+            <!-- Custom Legend -->
+            <div class="flex items-center gap-4 text-xs font-mono">
+              <span class="flex items-center gap-1.5 text-blue-600 font-medium">
+                <span class="w-3 h-0.5 bg-blue-600 rounded"></span> ψ(x)
+              </span>
+              <span class="flex items-center gap-1.5 text-purple-600 font-medium">
+                <span class="w-3 h-0.5 bg-purple-600 rounded"></span> |ψ(x)|²
+              </span>
+            </div>
+          </div>
+
+          <!-- Canvas for Wave Function -->
+          <div class="relative h-72 w-full pt-4">
+            <canvas id="quantumChart"></canvas>
+          </div>
+
+          <!-- Quantum Parameters Bottom Bar -->
+          <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] font-mono text-slate-500">
+            <div class="flex items-center gap-1.5">
+              <i data-lucide="gauge" class="w-3.5 h-3.5 text-slate-400"></i>
+              <span>normalized · ∫|ψ|² dx = 1</span>
+            </div>
+            <div>
+              <span>σ = 1.00</span> · <span>k₀ = 2.20</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <script>
+    // Initialize Lucide Icons
+    lucide.createIcons();
+
+    // View Switching Logic
+    function switchView(viewName) {
+      document.getElementById('view-workspace').classList.add('hidden');
+      document.getElementById('view-challenge').classList.add('hidden');
+      document.getElementById('view-observatory').classList.add('hidden');
+
+      if (viewName === 'workspace') {
+        document.getElementById('view-workspace').classList.remove('hidden');
+      } else if (viewName === 'challenge') {
+        document.getElementById('view-challenge').classList.remove('hidden');
+      } else if (viewName === 'observatory') {
+        document.getElementById('view-observatory').classList.remove('hidden');
+        renderWaveChart();
+      }
+    }
+
+    // Chart.js Generation of a Quantum Wave Packet ψ(x) = exp(-x²/2σ²) * cos(k₀ x)
+    let chartInstance = null;
+
+    function renderWaveChart() {
+      if (chartInstance) return; // Prevent recreation
+
+      const ctx = document.getElementById('quantumChart').getContext('2d');
+      const labels = [];
+      const psiValues = [];
+      const probDensityValues = [];
+
+      const sigma = 1.0;
+      const k0 = 2.2;
+      const points = 160;
+      const range = 5.0;
+
+      for (let i = 0; i <= points; i++) {
+        const x = -range + (2 * range * (i / points));
+        labels.push(x.toFixed(1));
+
+        // Real part of Gaussian wavepacket
+        const envelope = Math.exp(-(x * x) / (2 * sigma * sigma));
+        const psi = envelope * Math.cos(k0 * x);
+        const prob = envelope * envelope; // |ψ|²
+
+        psiValues.push(psi);
+        probDensityValues.push(prob);
+      }
+
+      chartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'ψ(x)',
+              data: psiValues,
+              borderColor: '#2563eb', // Blue
+              borderWidth: 2,
+              fill: false,
+              tension: 0.4,
+              pointRadius: 0
+            },
+            {
+              label: '|ψ(x)|²',
+              data: probDensityValues,
+              borderColor: '#9333ea', // Purple
+              borderWidth: 1.8,
+              backgroundColor: 'rgba(147, 51, 234, 0.04)',
+              fill: true,
+              tension: 0.4,
+              pointRadius: 0
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: { enabled: true }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: {
+                font: { family: "'Fira Code', monospace", size: 10 },
+                color: '#64748b',
+                maxTicksLimit: 21
+              }
+            },
+            y: {
+              min: -1.0,
+              max: 1.0,
+              grid: { color: '#f1f5f9' },
+              ticks: {
+                font: { family: "'Fira Code', monospace", size: 10 },
+                color: '#64748b',
+                stepSize: 0.5
+              }
+            }
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>
